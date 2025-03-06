@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat P2P Anónimo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/dead-simple-chat-sdk@latest/dist/chat-sdk.min.js"></script>
+  <style>
+    :root {
+      --primary-color: #be0791;
+      --primary-glow: #ff23da;
+      --bg-color: #0e0e12;
+      --text-color: #f0f0f0;
+      --secondary-color: #ff00dd;
+      --accent-color: #c40b8c;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Montserrat', Arial, sans-serif;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    .container {
+      max-width: 1400px;
+      width: 90%;
+      margin: 0 auto;
+      padding: 20px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      width: 100%;
+      position: relative;
+    }
+    
+    .header::before {
+      content: "";
+      position: absolute;
+      top: -20px;
+      left: -10%;
+      right: -10%;
+      height: 300px;
+      background: radial-gradient(ellipse at center, rgba(190, 7, 145, 0.2) 0%, rgba(14, 14, 18, 0) 70%);
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .logo {
+      font-size: 2.8rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      position: relative;
+      display: inline-block;
+    }
+    
+    .logo::after {
+      content: "P2P";
+      position: absolute;
+      top: -15px;
+      right: -40px;
+      font-size: 1rem;
+      font-weight: 700;
+      background: var(--primary-color);
+      color: white;
+      padding: 3px 8px;
+      border-radius: 12px;
+      transform: rotate(15deg);
+      letter-spacing: 0;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .tagline {
+      font-size: 1.2rem;
+      color: var(--secondary-color);
+      opacity: 0.8;
+      margin-bottom: 10px;
+    }
+    
+    .description {
+      max-width: 600px;
+      margin: 0 auto 20px;
+      font-size: 0.95rem;
+      opacity: 0.7;
+      line-height: 1.6;
+    }
+    
+    .chat-container {
+      width: 100%;
+      height: 75vh;
+      margin-bottom: 30px;
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 0 30px rgba(190, 7, 145, 0.3),
+                  0 0 60px rgba(190, 7, 145, 0.1);
+      border: 1px solid rgba(190, 7, 145, 0.5);
+    }
+    
+    #chat-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    
+    .commands-help {
+      background: rgba(190, 7, 145, 0.1);
+      border: 1px solid rgba(190, 7, 145, 0.3);
+      border-radius: 8px;
+      padding: 15px 20px;
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 30px;
+    }
+    
+    .commands-title {
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      color: var(--secondary-color);
+    }
+    
+    .commands-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+    
+    .command-item {
+      display: flex;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+    
+    .command-item::before {
+      content: "/";
+      color: var(--secondary-color);
+      font-weight: bold;
+      margin-right: 5px;
+    }
+    
+    .footer {
+      text-align: center;
+      padding: 20px 0;
+      font-size: 0.8rem;
+      opacity: 0.6;
+      width: 100%;
+    }
+    
+    .glow-effect {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      background: radial-gradient(circle, var(--primary-glow) 0%, rgba(255,35,218,0) 70%);
+      border-radius: 50%;
+      opacity: 0.2;
+      filter: blur(20px);
+      animation: float 8s infinite ease-in-out;
+    }
+    
+    .glow-1 {
+      top: 10%;
+      left: 10%;
+      animation-delay: 0s;
+    }
+    
+    .glow-2 {
+      bottom: 20%;
+      right: 15%;
+      width: 200px;
+      height: 200px;
+      animation-delay: 2s;
+    }
+    
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0) scale(1);
+      }
+      50% {
+        transform: translateY(-30px) scale(1.1);
+      }
+    }
+    
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(190, 7, 145, 0.2);
+      padding: 5px 12px;
+      border-radius: 20px;
+      margin-bottom: 15px;
+      font-size: 0.85rem;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #4CAF50;
+      border-radius: 50%;
+      margin-right: 8px;
+      position: relative;
+    }
+    
+    .status-dot::after {
+      content: "";
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background-color: rgba(76, 175, 80, 0.4);
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+    
+    .alias-display {
+      background: rgba(190, 7, 145, 0.2);
+      border: 1px solid rgba(190, 7, 145, 0.3);
+      border-radius: 20px;
+      padding: 5px 12px;
+      margin-bottom: 15px;
+      font-size: 0.85rem;
+      display: inline-block;
+    }
+    
+    .alias-name {
+      font-weight: bold;
+      color: var(--secondary-color);
+    }
+    
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1.6);
+        opacity: 0;
+      }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .container {
+        width: 95%;
+        padding: 15px 0;
+      }
+      
+      .logo {
+        font-size: 2rem;
+      }
+      
+      .logo::after {
+        top: -10px;
+        right: -30px;
+        font-size: 0.8rem;
+      }
+      
+      .chat-container {
+        height: 70vh;
+      }
+      
+      .commands-list {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .header::before {
+        height: 200px;
+      }
+      
+      .logo {
+        font-size: 1.7rem;
+      }
+      
+      .tagline {
+        font-size: 1rem;
+      }
+      
+      .description {
+        font-size: 0.85rem;
+      }
+      
+      .chat-container {
+        height: 75vh;
+        border-radius: 12px;
+      }
+      
+      .commands-list {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-effect glow-1"></div>
+  <div class="glow-effect glow-2"></div>
+
+  <div class="container">
+    <header class="header">
+      <h1 class="logo">XenCup - AnonChat</h1>
+      <p class="tagline">Conversaciones Privadas y Anónimas</p>
+      <div class="status-indicator">
+        <span class="status-dot"></span>
+        <span class="status-text">Conectado</span>
+      </div>
+      <p class="description">Esta sala de chat es completamente privada y P2P. No guardamos historial de mensajes y tu identidad permanece anónima.</p>
+    </header>
+
+    <div class="chat-container">
+      <iframe 
+        src="https://deadsimplechat.com/GaN27WCJ5" 
+        id="chat-frame" 
+        allowtransparency="true"
+        frameborder="0">
+      </iframe>
+    </div>
+
+
+  <footer class="footer">
+    <p>© 2025 ChatAnon - Todos los derechos reservados</p>
+  </footer>
+
+  <script>
+    (async () => {
+      // Generar alias aleatorio para el usuario
+      const nombres = ["Shadow", "Ghost", "Xeno", "Alpha", "Cipher", "Blade", "Phantom", "Glitch", "Echo", "Omega", "Nova", "Quantum", "Zenith", "Phoenix", "Onyx", "Crypto"];
+      const adjetivos = ["Veloz", "Astuto", "Oscuro", "Brillante", "Místico", "Oculto", "Etéreo", "Nocturno"];
+      
+      // Generar un alias más elaborado y memorable
+      const aleatorio = () => Math.floor(Math.random() * 1000);
+      let userAlias;
+      
+      if (Math.random() > 0.5) {
+        userAlias = `${nombres[Math.floor(Math.random() * nombres.length)]}${aleatorio()}`;
+      } else {
+        userAlias = `${adjetivos[Math.floor(Math.random() * adjetivos.length)]}_${nombres[Math.floor(Math.random() * nombres.length)]}`;
+      }
+
+
+      // Inicializar SDK de Dead Simple Chat
+      const sdk = new DSChatSDK(
+        "GaN27WCJ5",
+        "chat-frame",
+        "pub_5138736c6731477a6f66484d6566736442684b4577746a615a4c4c5957516d4c5350654e6f774d5144495a4f656c3472"
+      );
+      
+      try {
+        await sdk.connect();
+        console.log("Conectado al servidor de chat");
+        
+        // Unir al usuario con alias generado
+        sdk.join({ uniqueUserIdentifier: userAlias });
+        
+        // Animación de conexión exitosa
+        document.querySelector('.status-text').textContent = "En línea";
+      } catch (error) {
+        console.error("Error al conectar:", error);
+        document.querySelector('.status-dot').style.backgroundColor = "#f44336";
+        document.querySelector('.status-text').textContent = "Error de conexión";
+      }
+
+      // Escuchar eventos del chat
+      sdk.on("message", (message) => {
+        console.log(`[MENSAJE] ${message.sender}: ${message.content}`);
+
+        // Animación de notificación visual sutil en la interfaz
+        const chatContainer = document.querySelector('.chat-container');
+        chatContainer.style.boxShadow = '0 0 30px rgba(255, 35, 218, 0.6), 0 0 60px rgba(190, 7, 145, 0.3)';
+        setTimeout(() => {
+          chatContainer.style.boxShadow = '0 0 30px rgba(190, 7, 145, 0.3), 0 0 60px rgba(190, 7, 145, 0.1)';
+        }, 300);
+
+        // ALERTA cuando mencionan tu alias
+        if (message.content.includes(userAlias)) {
+          // Crear notificación personalizada en lugar de alert
+          const notification = document.createElement('div');
+          notification.className = 'custom-notification';
+          notification.innerHTML = `
+            <div style="position: fixed; top: 20px; right: 20px; background: rgba(190, 7, 145, 0.9); color: white; 
+                       padding: 15px 20px; border-radius: 8px; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                       animation: slideIn 0.3s ease-out forwards; max-width: 300px;">
+              <p style="margin: 0 0 5px 0; font-weight: bold;">🚀 ¡Te han mencionado!</p>
+              <p style="margin: 0; font-size: 0.9em; opacity: 0.9;">${message.sender}: ${message.content}</p>
+            </div>
+          `;
+          document.body.appendChild(notification);
+          
+          // Auto eliminar notificación después de 5 segundos
+          setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease-in forwards';
+            setTimeout(() => {
+              document.body.removeChild(notification);
+            }, 300);
+          }, 5000);
+          
+          // Reproducir sonido de notificación
+          const audio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAAbAAoDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwNjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjZMTExMTExMTExMTExMTExMTExMTExMTExMmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmP////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAbCwzs4hAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/+MYxAAUmAqyQUwQAhqKmJjWKSWSSSQ+JkmZP//MQ5P/+cZmRo5EkSSzMPJIkj//9RJEkTUyZ///+pkkkkkkiUiQ0HP/+MYxAsU6SpgAZmQASH7oxZr0QIAAgSMWW4YCIPgLOQ/Bh+D4PwQ5C7OH4EAgEOQ5DkOQu/B8HINyDgQ5APg+DkOh8QD/+MYxAYAAANIAcAAAH4f8EH///g+D4Pg+D/BD4Pg+D4PzzzzzzzzwQBAEAQDwfBAAMQGCiYOCRkxwYmIg4EASBwJB4P/+MYxDsJ+AAJeADAABg+D4Pi0PDwQDg8Hg8Hg8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw');
+          audio.play();
+        }
+
+        // BOT AUTOMÁTICO responde a "/bot dime algo"
+        if (message.content.toLowerCase() === "/bot dime algo") {
+          setTimeout(() => {
+            sdk.sendMessage(`🤖 Soy el bot, y digo: "El futuro es ahora, ${message.sender}."`);
+          }, 1000);
+        }
+
+        // MODERACIÓN: Silenciar usuario si usa "mala palabra"
+        if (message.content.toLowerCase().includes("mala palabra")) {
+          sdk.banUser(message.sender);
+          sdk.sendMessage(`⚠️ Usuario ${message.sender} ha sido silenciado por lenguaje ofensivo.`);
+        }
+      });
+
+      sdk.on("userJoined", (user) => {
+        console.log(`[ENTRADA] ${user.username} ha entrado al chat.`);
+        sdk.sendMessage(`👤 ${user.username} se ha unido.`);
+        
+        // Actualizar contador de usuarios visualmente
+        actualizarContadorUsuarios();
+      });
+
+      sdk.on("userLeft", (user) => {
+        console.log(`[SALIDA] ${user.username} ha salido.`);
+        sdk.sendMessage(`👤 ${user.username} ha salido del chat.`);
+        
+        // Actualizar contador de usuarios visualmente
+        actualizarContadorUsuarios();
+      });
+
+      function actualizarContadorUsuarios() {
+        const usuarios = sdk.getUsers();
+        const contadorUsuarios = usuarios ? usuarios.length : 0;
+        // Podríamos mostrar esta información en la interfaz si lo deseamos
+      }
+
+      // COMANDOS ESPECIALES
+      function ejecutarComando(comando) {
+        switch (comando) {
+          case "/clear":
+            sdk.deleteAllMessages();
+            sdk.sendMessage("🧹 Se han eliminado todos los mensajes.");
+            break;
+          case "/users":
+            sdk.sendMessage("📌 Usuarios activos: " + sdk.getUsers().map(u => u.username).join(", "));
+            break;
+          case "/help":
+            sdk.sendMessage("📜 Comandos disponibles: /clear, /users, /help, /bot dime algo");
+            break;
+          default:
+            if (comando && comando.startsWith("/")) {
+              sdk.sendMessage("⚠️ Comando no reconocido. Usa /help para ver los comandos.");
+            } else if (comando) {
+              sdk.sendMessage(comando);
+            }
+        }
+      }
+
+      // MONITOREAR INPUT PARA COMANDOS
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "/") {
+          const comandoInput = prompt("Introduce un comando o mensaje:");
+          if (comandoInput) {
+            ejecutarComando(comandoInput);
+          }
+          event.preventDefault();
+        }
+      });
+
+      // Añadir estilos para animaciones de notificación
+      const styleSheet = document.createElement("style");
+      styleSheet.innerHTML = `
+        @keyframes slideIn {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+          from { transform: translateX(0); opacity: 1; }
+          to { transform: translateX(100%); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(styleSheet);
+
+    })();
+  </script>
+</body>
+</html>
