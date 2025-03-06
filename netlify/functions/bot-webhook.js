@@ -1,39 +1,38 @@
 exports.handler = async (event) => {
     try {
-      // Verifica que sea una solicitud POST
+      // 1. Verificamos que el método sea POST
       if (event.httpMethod !== "POST") {
         return {
           statusCode: 405,
           body: JSON.stringify({ message: "Método no permitido" }),
         };
       }
-      exports.handler = async (event) => {
-        console.log("🔍 Datos recibidos:", event.body); // 🔥 Esto imprimirá lo que envía Dead Simple Chat
-        try {
-            const data = JSON.parse(event.body);
-            
-            return {
-                statusCode: 200,
-                body: JSON.stringify({ response: `👋 ¡Hola! Recibí tu mensaje: ${data.message}` })
-            };
-        } catch (error) {
-            console.error("❌ Error procesando el webhook:", error);
-            return {
-                statusCode: 500,
-                body: JSON.stringify({ error: "Error procesando la solicitud" })
-            };
-        }
-    };
-    
-      // Parsear el contenido del mensaje del bot
-      const requestBody = JSON.parse(event.body);
-      console.log("Mensaje recibido del bot:", requestBody);
   
-      // Extraer la información del mensaje
-      const userMessage = requestBody.message || "";
-      const sender = requestBody.sender || "Anónimo";
+      // 2. Mostramos en logs todo lo que llega
+      console.log("🔍 Datos recibidos:", event.body);
   
-      // Responder al usuario con un mensaje del bot
+      // 3. Parseamos el body que envía Dead Simple Chat
+      const data = JSON.parse(event.body);
+  
+      /**
+       * Dead Simple Chat envía el mensaje dentro de:
+       * data.message.message
+       * Ejemplo:
+       *  {
+       *    message: {
+       *      message: "@B4ckbiaDulce hola"
+       *    },
+       *    user: { username: "xenadev" },
+       *    ...
+       *  }
+       */
+      const userMessage = data.message?.message || "";
+      const sender = data.user?.username || "Anónimo";
+  
+      console.log("📌 userMessage:", userMessage);
+      console.log("📌 sender:", sender);
+  
+      // 4. Lógica de respuesta del Bot
       let botResponse = "";
   
       if (userMessage.toLowerCase().includes("hola")) {
@@ -44,12 +43,14 @@ exports.handler = async (event) => {
         botResponse = `🔮 No entiendo "${userMessage}", pero seguiré aprendiendo.`;
       }
   
+      // 5. Enviamos la respuesta al chat
       return {
         statusCode: 200,
-        body: JSON.stringify({ response: botResponse }),
+        body: JSON.stringify({ response: botResponse })
       };
+  
     } catch (error) {
-      console.error("Error en el webhook:", error);
+      console.error("❌ Error en el webhook:", error);
       return {
         statusCode: 500,
         body: JSON.stringify({ message: "Error interno del servidor" }),
