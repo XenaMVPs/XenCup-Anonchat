@@ -7,7 +7,24 @@ exports.handler = async (event) => {
           body: JSON.stringify({ message: "Método no permitido" }),
         };
       }
-  
+      exports.handler = async (event) => {
+        console.log("🔍 Datos recibidos:", event.body); // 🔥 Esto imprimirá lo que envía Dead Simple Chat
+        try {
+            const data = JSON.parse(event.body);
+            
+            return {
+                statusCode: 200,
+                body: JSON.stringify({ response: `👋 ¡Hola! Recibí tu mensaje: ${data.message}` })
+            };
+        } catch (error) {
+            console.error("❌ Error procesando el webhook:", error);
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ error: "Error procesando la solicitud" })
+            };
+        }
+    };
+    
       // Parsear el contenido del mensaje del bot
       const requestBody = JSON.parse(event.body);
       console.log("Mensaje recibido del bot:", requestBody);
